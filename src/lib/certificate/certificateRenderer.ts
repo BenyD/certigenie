@@ -76,13 +76,13 @@ export async function generateCertificateCanvas(
   // Draw template background
   ctx.drawImage(templateImage, 0, 0, width, height);
 
-  // Process each field with scaled coordinates
+  // Process each field with coordinates
   for (const field of fields) {
-    // Scale field coordinates to match the scaled template image
-    // Always apply scaling if scale and original dimensions are provided
+    // Only apply scaling if scale is not 1 and original dimensions are provided
+    // This allows for cases where fields are already in the correct coordinate system
     const scaledField = {
       ...field,
-      ...(scale && originalWidth && originalHeight
+      ...(scale !== 1 && originalWidth && originalHeight
         ? scaleCoordinates(field.x, field.y, field.width, field.height, scale)
         : { x: field.x, y: field.y, width: field.width, height: field.height }),
     };
@@ -127,16 +127,23 @@ async function renderField(
   switch (type) {
     case "text":
     case "date":
-      // Render text-based fields
+      // Render text-based fields with exact positioning and padding
       ctx.fillStyle = color;
       ctx.font = `${fontSize}px ${fontFamily}`;
-      ctx.textAlign = "left";
+      ctx.textAlign = field.textAlign || "left";
       ctx.textBaseline = "top";
+
+      // Add padding to match design canvas
+      const padding = 4;
+      const textX = x + padding;
+      const textY = y + padding;
+      const textWidth = width - padding * 2;
+      const textHeight = height - padding * 2;
 
       // Handle text wrapping for long text
       const words = fieldValue.split(" ");
       let line = "";
-      let yPos = y;
+      let yPos = textY;
       const lineHeight = fontSize * 1.2;
 
       for (let i = 0; i < words.length; i++) {
@@ -144,15 +151,30 @@ async function renderField(
         const metrics = ctx.measureText(testLine);
         const testWidth = metrics.width;
 
-        if (testWidth > width && line !== "") {
-          ctx.fillText(line, x, yPos);
+        if (testWidth > textWidth && line !== "") {
+          // Calculate x position based on text alignment
+          let finalTextX = textX;
+          if (field.textAlign === "center") {
+            finalTextX = textX + textWidth / 2;
+          } else if (field.textAlign === "right") {
+            finalTextX = textX + textWidth;
+          }
+          ctx.fillText(line, finalTextX, yPos);
           line = words[i] + " ";
           yPos += lineHeight;
         } else {
           line = testLine;
         }
       }
-      ctx.fillText(line, x, yPos);
+
+      // Calculate x position for the final line based on text alignment
+      let finalTextX = textX;
+      if (field.textAlign === "center") {
+        finalTextX = textX + textWidth / 2;
+      } else if (field.textAlign === "right") {
+        finalTextX = textX + textWidth;
+      }
+      ctx.fillText(line, finalTextX, yPos);
       break;
 
     case "signature":
@@ -204,12 +226,27 @@ async function renderField(
       break;
 
     case "certificateId":
-      // Render certificate ID
+      // Render certificate ID with exact positioning and padding
       ctx.fillStyle = color;
       ctx.font = `${fontSize}px ${fontFamily}`;
-      ctx.textAlign = "left";
+      ctx.textAlign = field.textAlign || "center";
       ctx.textBaseline = "top";
-      ctx.fillText(certificateId, x, y);
+
+      // Add padding to match design canvas
+      const certPadding = 4;
+      const certTextX = x + certPadding;
+      const certTextY = y + certPadding;
+      const certTextWidth = width - certPadding * 2;
+
+      // Calculate x position based on text alignment
+      let finalCertTextX = certTextX;
+      if (field.textAlign === "center") {
+        finalCertTextX = certTextX + certTextWidth / 2;
+      } else if (field.textAlign === "right") {
+        finalCertTextX = certTextX + certTextWidth;
+      }
+
+      ctx.fillText(certificateId, finalCertTextX, certTextY);
       break;
 
     case "qr":

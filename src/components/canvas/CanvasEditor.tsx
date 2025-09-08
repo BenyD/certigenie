@@ -39,6 +39,10 @@ interface TemplateField {
   placeholder?: string;
   label?: string;
   signatureImageId?: string;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  textAlign?: "left" | "center" | "right";
 }
 
 interface SignatureImage {
@@ -431,9 +435,25 @@ export default function CanvasEditor({
               fontSize={(field.fontSize || 12) * scale}
               fontFamily={field.fontFamily || "Arial"}
               fill={field.color || "#1f2937"}
-              align="left"
+              align={field.textAlign || "left"}
               verticalAlign="top"
               wrap="word"
+              listening={false}
+              fontStyle={
+                `${field.bold ? "bold" : ""} ${
+                  field.italic ? "italic" : ""
+                }`.trim() || "normal"
+              }
+              textDecoration={field.underline ? "underline" : "none"}
+            />
+            {/* Text baseline indicator in preview mode */}
+            <Rect
+              x={displayX}
+              y={displayY + (field.fontSize || 12) * scale}
+              width={displayWidth}
+              height={1}
+              fill="#e5e7eb"
+              opacity={0.6}
               listening={false}
             />
             {/* Subtle border to show field boundaries */}
@@ -463,9 +483,25 @@ export default function CanvasEditor({
               fontSize={(field.fontSize || 12) * scale}
               fontFamily={field.fontFamily || "Arial"}
               fill={field.color || "#1f2937"}
-              align="left"
+              align={field.textAlign || "left"}
               verticalAlign="top"
               wrap="word"
+              listening={false}
+              fontStyle={
+                `${field.bold ? "bold" : ""} ${
+                  field.italic ? "italic" : ""
+                }`.trim() || "normal"
+              }
+              textDecoration={field.underline ? "underline" : "none"}
+            />
+            {/* Text baseline indicator in preview mode */}
+            <Rect
+              x={displayX}
+              y={displayY + (field.fontSize || 12) * scale}
+              width={displayWidth}
+              height={1}
+              fill="#e5e7eb"
+              opacity={0.6}
               listening={false}
             />
             <Rect
@@ -607,8 +643,8 @@ export default function CanvasEditor({
   const renderField = (field: TemplateField) => {
     const isSelected = selectedField?.id === field.id;
 
-    // Force re-render when field properties change
-    const fieldKey = `${field.id}-${field.fontSize}-${field.fontFamily}-${field.color}-${field.placeholder}-${field.signatureImageId}`;
+    // Force re-render when field properties change - include all relevant properties
+    const fieldKey = `${field.id}-${field.fontSize}-${field.fontFamily}-${field.color}-${field.placeholder}-${field.signatureImageId}-${field.bold}-${field.italic}-${field.underline}-${field.textAlign}`;
 
     // Convert original PDF coordinates to scaled display coordinates
     const displayX = field.x * scale;
@@ -632,6 +668,7 @@ export default function CanvasEditor({
       case "text":
         return (
           <Group key={fieldKey} id={field.id}>
+            {/* Field background for better visibility */}
             <Rect
               x={displayX}
               y={displayY}
@@ -639,20 +676,19 @@ export default function CanvasEditor({
               height={displayHeight}
               fill={
                 isSelected
-                  ? "rgba(59, 130, 246, 0.08)"
-                  : "rgba(59, 130, 246, 0.03)"
+                  ? "rgba(59, 130, 246, 0.05)"
+                  : "rgba(255, 255, 255, 0.8)"
               }
-              stroke={isSelected ? "#3b82f6" : "#60a5fa"}
+              stroke={isSelected ? "#3b82f6" : "#d1d5db"}
               strokeWidth={isSelected ? 2 : 1}
-              dash={isSelected ? [8, 4] : [4, 2]}
-              cornerRadius={2}
+              dash={isSelected ? [4, 4] : [2, 2]}
               draggable
               onClick={() => handleFieldClick(field)}
               onDragEnd={(e) => handleFieldDragEnd(field, e)}
               onTransformEnd={(e) => handleFieldResize(field, e)}
               onContextMenu={(e) => handleFieldRightClick(field, e)}
             />
-            {/* Preview text showing how it will look on certificate */}
+            {/* Text content with proper padding */}
             <Text
               key={`${fieldKey}-text`}
               x={displayX + 4}
@@ -665,33 +701,59 @@ export default function CanvasEditor({
               fontSize={(field.fontSize || 12) * scale}
               fontFamily={field.fontFamily || "Arial"}
               fill={field.color || "#1f2937"}
-              align="left"
+              align={field.textAlign || "left"}
               verticalAlign="top"
               wrap="word"
               listening={false}
-              opacity={0.8}
+              fontStyle={
+                `${field.bold ? "bold" : ""} ${
+                  field.italic ? "italic" : ""
+                }`.trim() || "normal"
+              }
+              textDecoration={field.underline ? "underline" : "none"}
             />
-            {/* Bottom border to show text baseline */}
+            {/* Text baseline indicator - shows where text will be placed */}
+            <Rect
+              x={displayX + 4}
+              y={displayY + 4 + (field.fontSize || 12) * scale}
+              width={displayWidth - 8}
+              height={1}
+              fill={isSelected ? "#3b82f6" : "#94a3b8"}
+              opacity={0.6}
+              listening={false}
+            />
+            {/* Corner indicators to show field boundaries */}
             <Rect
               x={displayX}
-              y={displayY + displayHeight - 2}
-              width={displayWidth}
-              height={1}
-              fill={isSelected ? "#3b82f6" : "#60a5fa"}
-              opacity={0.6}
-            />
-            {/* Field type indicator */}
-            <Text
-              x={displayX + 4}
-              y={displayY + displayHeight - 12}
-              text={`Text Field`}
-              fontSize={8 * scale}
-              fontFamily="Arial"
-              fill={isSelected ? "#3b82f6" : "#60a5fa"}
-              align="left"
-              verticalAlign="top"
+              y={displayY}
+              width={4}
+              height={4}
+              fill={isSelected ? "#3b82f6" : "#94a3b8"}
               listening={false}
-              opacity={0.7}
+            />
+            <Rect
+              x={displayX + displayWidth - 4}
+              y={displayY}
+              width={4}
+              height={4}
+              fill={isSelected ? "#3b82f6" : "#94a3b8"}
+              listening={false}
+            />
+            <Rect
+              x={displayX}
+              y={displayY + displayHeight - 4}
+              width={4}
+              height={4}
+              fill={isSelected ? "#3b82f6" : "#94a3b8"}
+              listening={false}
+            />
+            <Rect
+              x={displayX + displayWidth - 4}
+              y={displayY + displayHeight - 4}
+              width={4}
+              height={4}
+              fill={isSelected ? "#3b82f6" : "#94a3b8"}
+              listening={false}
             />
           </Group>
         );
@@ -699,6 +761,7 @@ export default function CanvasEditor({
       case "date":
         return (
           <Group key={fieldKey} id={field.id}>
+            {/* Field background for better visibility */}
             <Rect
               x={displayX}
               y={displayY}
@@ -706,20 +769,19 @@ export default function CanvasEditor({
               height={displayHeight}
               fill={
                 isSelected
-                  ? "rgba(34, 197, 94, 0.08)"
-                  : "rgba(34, 197, 94, 0.03)"
+                  ? "rgba(34, 197, 94, 0.05)"
+                  : "rgba(255, 255, 255, 0.8)"
               }
-              stroke={isSelected ? "#22c55e" : "#4ade80"}
+              stroke={isSelected ? "#22c55e" : "#d1d5db"}
               strokeWidth={isSelected ? 2 : 1}
-              dash={isSelected ? [8, 4] : [4, 2]}
-              cornerRadius={2}
+              dash={isSelected ? [4, 4] : [2, 2]}
               draggable
               onClick={() => handleFieldClick(field)}
               onDragEnd={(e) => handleFieldDragEnd(field, e)}
               onTransformEnd={(e) => handleFieldResize(field, e)}
               onContextMenu={(e) => handleFieldRightClick(field, e)}
             />
-            {/* Preview text showing how it will look on certificate */}
+            {/* Text content with proper padding */}
             <Text
               key={`${fieldKey}-text`}
               x={displayX + 4}
@@ -732,33 +794,59 @@ export default function CanvasEditor({
               fontSize={(field.fontSize || 12) * scale}
               fontFamily={field.fontFamily || "Arial"}
               fill={field.color || "#1f2937"}
-              align="left"
+              align={field.textAlign || "left"}
               verticalAlign="top"
               wrap="word"
               listening={false}
-              opacity={0.8}
+              fontStyle={
+                `${field.bold ? "bold" : ""} ${
+                  field.italic ? "italic" : ""
+                }`.trim() || "normal"
+              }
+              textDecoration={field.underline ? "underline" : "none"}
             />
-            {/* Bottom border to show text baseline */}
+            {/* Text baseline indicator - shows where text will be placed */}
+            <Rect
+              x={displayX + 4}
+              y={displayY + 4 + (field.fontSize || 12) * scale}
+              width={displayWidth - 8}
+              height={1}
+              fill={isSelected ? "#22c55e" : "#94a3b8"}
+              opacity={0.6}
+              listening={false}
+            />
+            {/* Corner indicators to show field boundaries */}
             <Rect
               x={displayX}
-              y={displayY + displayHeight - 2}
-              width={displayWidth}
-              height={1}
-              fill={isSelected ? "#22c55e" : "#4ade80"}
-              opacity={0.6}
-            />
-            {/* Field type indicator */}
-            <Text
-              x={displayX + 4}
-              y={displayY + displayHeight - 12}
-              text={`Date Field`}
-              fontSize={8 * scale}
-              fontFamily="Arial"
-              fill={isSelected ? "#22c55e" : "#4ade80"}
-              align="left"
-              verticalAlign="top"
+              y={displayY}
+              width={4}
+              height={4}
+              fill={isSelected ? "#22c55e" : "#94a3b8"}
               listening={false}
-              opacity={0.7}
+            />
+            <Rect
+              x={displayX + displayWidth - 4}
+              y={displayY}
+              width={4}
+              height={4}
+              fill={isSelected ? "#22c55e" : "#94a3b8"}
+              listening={false}
+            />
+            <Rect
+              x={displayX}
+              y={displayY + displayHeight - 4}
+              width={4}
+              height={4}
+              fill={isSelected ? "#22c55e" : "#94a3b8"}
+              listening={false}
+            />
+            <Rect
+              x={displayX + displayWidth - 4}
+              y={displayY + displayHeight - 4}
+              width={4}
+              height={4}
+              fill={isSelected ? "#22c55e" : "#94a3b8"}
+              listening={false}
             />
           </Group>
         );
@@ -766,6 +854,7 @@ export default function CanvasEditor({
       case "certificateId":
         return (
           <Group key={fieldKey} id={field.id}>
+            {/* Field background for better visibility */}
             <Rect
               x={displayX}
               y={displayY}
@@ -773,32 +862,81 @@ export default function CanvasEditor({
               height={displayHeight}
               fill={
                 isSelected
-                  ? "rgba(107, 114, 128, 0.12)"
-                  : "rgba(107, 114, 128, 0.06)"
+                  ? "rgba(107, 114, 128, 0.05)"
+                  : "rgba(255, 255, 255, 0.8)"
               }
-              stroke={isSelected ? "#6b7280" : "#9ca3af"}
-              strokeWidth={isSelected ? 1.5 : 1}
-              dash={[6, 3]}
-              cornerRadius={3}
+              stroke={isSelected ? "#6b7280" : "#d1d5db"}
+              strokeWidth={isSelected ? 2 : 1}
+              dash={isSelected ? [4, 4] : [2, 2]}
               draggable
               onClick={() => handleFieldClick(field)}
               onDragEnd={(e) => handleFieldDragEnd(field, e)}
               onTransformEnd={(e) => handleFieldResize(field, e)}
               onContextMenu={(e) => handleFieldRightClick(field, e)}
             />
+            {/* Text content with proper padding */}
             <Text
               key={`${fieldKey}-text`}
-              x={displayX + 6}
-              y={displayY + 6}
-              width={displayWidth - 12}
-              height={displayHeight - 12}
+              x={displayX + 4}
+              y={displayY + 4}
+              width={displayWidth - 8}
+              height={displayHeight - 8}
               text={field.label || getFieldLabel(field.type)}
               fontSize={(field.fontSize || 12) * scale}
               fontFamily={field.fontFamily || "Arial"}
               fill={field.color || "#374151"}
-              align="center"
-              verticalAlign="middle"
+              align={field.textAlign || "center"}
+              verticalAlign="top"
               wrap="word"
+              listening={false}
+              fontStyle={
+                `${field.bold ? "bold" : ""} ${
+                  field.italic ? "italic" : ""
+                }`.trim() || "normal"
+              }
+              textDecoration={field.underline ? "underline" : "none"}
+            />
+            {/* Text baseline indicator - shows where text will be placed */}
+            <Rect
+              x={displayX + 4}
+              y={displayY + 4 + (field.fontSize || 12) * scale}
+              width={displayWidth - 8}
+              height={1}
+              fill={isSelected ? "#6b7280" : "#94a3b8"}
+              opacity={0.6}
+              listening={false}
+            />
+            {/* Corner indicators to show field boundaries */}
+            <Rect
+              x={displayX}
+              y={displayY}
+              width={4}
+              height={4}
+              fill={isSelected ? "#6b7280" : "#94a3b8"}
+              listening={false}
+            />
+            <Rect
+              x={displayX + displayWidth - 4}
+              y={displayY}
+              width={4}
+              height={4}
+              fill={isSelected ? "#6b7280" : "#94a3b8"}
+              listening={false}
+            />
+            <Rect
+              x={displayX}
+              y={displayY + displayHeight - 4}
+              width={4}
+              height={4}
+              fill={isSelected ? "#6b7280" : "#94a3b8"}
+              listening={false}
+            />
+            <Rect
+              x={displayX + displayWidth - 4}
+              y={displayY + displayHeight - 4}
+              width={4}
+              height={4}
+              fill={isSelected ? "#6b7280" : "#94a3b8"}
               listening={false}
             />
           </Group>
@@ -808,27 +946,19 @@ export default function CanvasEditor({
         const signatureImage = field.signatureImageId
           ? loadedSignatureImages.get(field.signatureImageId)
           : null;
-        const signatureName = field.signatureImageId
-          ? signatureImages.find((sig) => sig.id === field.signatureImageId)
-              ?.name
-          : null;
 
         return (
           <Group key={fieldKey} id={field.id}>
+            {/* Simple border for field area */}
             <Rect
               x={displayX}
               y={displayY}
               width={displayWidth}
               height={displayHeight}
-              fill={
-                isSelected
-                  ? "rgba(147, 51, 234, 0.08)"
-                  : "rgba(147, 51, 234, 0.03)"
-              }
-              stroke={isSelected ? "#9333ea" : "#a855f7"}
+              fill="transparent"
+              stroke={isSelected ? "#9333ea" : "#d1d5db"}
               strokeWidth={isSelected ? 2 : 1}
-              dash={isSelected ? [8, 4] : [4, 2]}
-              cornerRadius={2}
+              dash={isSelected ? [4, 4] : [2, 2]}
               draggable
               onClick={() => handleFieldClick(field)}
               onDragEnd={(e) => handleFieldDragEnd(field, e)}
@@ -836,94 +966,31 @@ export default function CanvasEditor({
               onContextMenu={(e) => handleFieldRightClick(field, e)}
             />
             {signatureImage ? (
-              <Group>
-                <KonvaImage
-                  image={signatureImage}
-                  x={displayX + 3}
-                  y={displayY + 3}
-                  width={displayWidth - 21}
-                  height={displayHeight - 6}
-                  cornerRadius={2}
-                  listening={false}
-                />
-                {/* Signature name overlay */}
-                <Rect
-                  x={displayX + 3}
-                  y={displayY + displayHeight - 16}
-                  width={displayWidth - 21}
-                  height={12}
-                  fill="rgba(0, 0, 0, 0.7)"
-                  cornerRadius={2}
-                  listening={false}
-                />
-                <Text
-                  x={displayX + 5}
-                  y={displayY + displayHeight - 14}
-                  width={displayWidth - 25}
-                  height={8}
-                  text={signatureName || "Signature"}
-                  fontSize={8 * scale}
-                  fontFamily="Arial"
-                  fill="white"
-                  align="center"
-                  verticalAlign="middle"
-                  wrap="word"
-                  listening={false}
-                />
-              </Group>
+              <KonvaImage
+                image={signatureImage}
+                x={displayX}
+                y={displayY}
+                width={displayWidth}
+                height={displayHeight}
+                listening={false}
+              />
             ) : (
-              <>
-                <Text
-                  key={`${fieldKey}-text`}
-                  x={displayX + 4}
-                  y={displayY + 4}
-                  width={displayWidth - 8}
-                  height={displayHeight - 8}
-                  text={field.placeholder || field.label || "Signature Field"}
-                  fontSize={(field.fontSize || 12) * scale}
-                  fontFamily={field.fontFamily || "Arial"}
-                  fill={field.color || "#1f2937"}
-                  align="left"
-                  verticalAlign="top"
-                  wrap="word"
-                  listening={false}
-                  opacity={0.8}
-                />
-                {/* Bottom border to show signature area */}
-                <Rect
-                  x={displayX}
-                  y={displayY + displayHeight - 2}
-                  width={displayWidth}
-                  height={1}
-                  fill={isSelected ? "#9333ea" : "#a855f7"}
-                  opacity={0.6}
-                />
-              </>
-            )}
-            {/* Signature status indicator */}
-            {field.signatureImageId && (
-              <Group>
-                <Rect
-                  x={displayX + 4}
-                  y={displayY + 4}
-                  width={12}
-                  height={12}
-                  fill="#22c55e"
-                  cornerRadius={6}
-                  listening={false}
-                />
-                <Text
-                  x={displayX + 6}
-                  y={displayY + 6}
-                  text="✓"
-                  fontSize={8}
-                  fontFamily="Arial"
-                  fill="white"
-                  align="center"
-                  verticalAlign="middle"
-                  listening={false}
-                />
-              </Group>
+              <Text
+                key={`${fieldKey}-text`}
+                x={displayX}
+                y={displayY}
+                width={displayWidth}
+                height={displayHeight}
+                text={field.placeholder || field.label || "Signature"}
+                fontSize={(field.fontSize || 12) * scale}
+                fontFamily={field.fontFamily || "Arial"}
+                fill={field.color || "#1f2937"}
+                align="center"
+                verticalAlign="middle"
+                wrap="word"
+                listening={false}
+                fontStyle="italic"
+              />
             )}
           </Group>
         );
@@ -932,20 +999,16 @@ export default function CanvasEditor({
         const qrImage = qrCodeImages.get(field.id);
         return (
           <Group key={fieldKey} id={field.id}>
+            {/* Simple border for field area */}
             <Rect
               x={displayX}
               y={displayY}
               width={displayWidth}
               height={displayHeight}
-              fill={
-                isSelected
-                  ? "rgba(249, 115, 22, 0.12)"
-                  : "rgba(249, 115, 22, 0.06)"
-              }
-              stroke={isSelected ? "#f97316" : "#fb923c"}
-              strokeWidth={isSelected ? 1.5 : 1}
-              dash={[6, 3]}
-              cornerRadius={3}
+              fill="transparent"
+              stroke={isSelected ? "#f97316" : "#d1d5db"}
+              strokeWidth={isSelected ? 2 : 1}
+              dash={isSelected ? [4, 4] : [2, 2]}
               draggable
               onClick={() => handleFieldClick(field)}
               onDragEnd={(e) => handleFieldDragEnd(field, e)}
@@ -955,20 +1018,19 @@ export default function CanvasEditor({
             {qrImage ? (
               <KonvaImage
                 image={qrImage}
-                x={displayX + 3}
-                y={displayY + 3}
-                width={displayWidth - 21}
-                height={displayHeight - 6}
-                cornerRadius={2}
+                x={displayX}
+                y={displayY}
+                width={displayWidth}
+                height={displayHeight}
                 listening={false}
               />
             ) : (
               <Text
                 key={`${fieldKey}-text`}
-                x={displayX + 6}
-                y={displayY + 6}
-                width={displayWidth - 12}
-                height={displayHeight - 12}
+                x={displayX}
+                y={displayY}
+                width={displayWidth}
+                height={displayHeight}
                 text="QR Code"
                 fontSize={(field.fontSize || 12) * scale}
                 fontFamily={field.fontFamily || "Arial"}

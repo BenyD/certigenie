@@ -487,9 +487,10 @@ export default function SidePanel({
                   </p>
                 </div>
 
-                {/* Text Formatting */}
+                {/* Text Formatting - Only for text and date fields */}
                 {(selectedField.type === "text" ||
-                  selectedField.type === "date") && (
+                  selectedField.type === "date" ||
+                  selectedField.type === "certificateId") && (
                   <>
                     <div className="space-y-4">
                       <div>
@@ -605,77 +606,124 @@ export default function SidePanel({
                   </>
                 )}
 
-                {/* Font Properties */}
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-sm font-semibold text-gray-900 dark:text-white">
-                        Font Size
-                      </Label>
-                      <select
-                        value={selectedField.fontSize || 16}
-                        onChange={(e) =>
-                          onUpdateField(selectedField.id, {
-                            fontSize: parseInt(e.target.value),
-                          })
-                        }
-                        className="mt-2 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-white text-sm"
-                      >
-                        {[
-                          8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48, 60, 72,
-                        ].map((size) => (
-                          <option key={size} value={size}>
-                            {size}px
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <Label className="text-sm font-semibold text-gray-900 dark:text-white">
-                        Font Family
-                      </Label>
-                      <select
-                        value={selectedField.fontFamily || "Arial"}
-                        onChange={(e) =>
-                          onUpdateField(selectedField.id, {
-                            fontFamily: e.target.value,
-                          })
-                        }
-                        style={{
-                          fontFamily: selectedField.fontFamily || "Arial",
-                        }}
-                        className="mt-2 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-white text-sm"
-                      >
-                        <option value="Arial">Arial</option>
-                        <option value="Helvetica">Helvetica</option>
-                        <option value="Times New Roman">Times New Roman</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Color */}
-                  <div>
-                    <Label className="text-sm font-semibold text-gray-900 dark:text-white">
-                      Text Color
-                    </Label>
-                    <div className="mt-2 flex items-center space-x-3">
-                      <input
-                        type="color"
-                        value={selectedField.color || "#000000"}
-                        onChange={(e) =>
-                          onUpdateField(selectedField.id, {
-                            color: e.target.value,
-                          })
-                        }
-                        className="w-12 h-10 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 cursor-pointer"
-                      />
-                      <div className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm font-mono">
-                        {selectedField.color || "#000000"}
+                {/* Disabled formatting notice for QR and Signature fields */}
+                {(selectedField.type === "qr" ||
+                  selectedField.type === "signature") && (
+                  <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                    <div className="flex items-start space-x-2">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full mt-1.5 flex-shrink-0"></div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="font-medium text-gray-900 dark:text-white mb-1">
+                          Text Formatting Not Available
+                        </p>
+                        <p>
+                          {selectedField.type === "qr"
+                            ? "QR codes are automatically generated and don't support text formatting."
+                            : "Signature fields display uploaded images and don't support text formatting."}
+                        </p>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
+
+                {/* Font Properties - Only for text-based fields */}
+                {(selectedField.type === "text" ||
+                  selectedField.type === "date" ||
+                  selectedField.type === "certificateId") && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-sm font-semibold text-gray-900 dark:text-white">
+                          Font Size
+                        </Label>
+                        <select
+                          value={selectedField.fontSize || 16}
+                          onChange={(e) =>
+                            onUpdateField(selectedField.id, {
+                              fontSize: parseInt(e.target.value),
+                            })
+                          }
+                          className="mt-2 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-white text-sm"
+                        >
+                          {[
+                            8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48, 60,
+                            72,
+                          ].map((size) => (
+                            <option key={size} value={size}>
+                              {size}px
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <Label className="text-sm font-semibold text-gray-900 dark:text-white">
+                          Font Family
+                        </Label>
+                        <select
+                          value={selectedField.fontFamily || "Arial"}
+                          onChange={(e) =>
+                            onUpdateField(selectedField.id, {
+                              fontFamily: e.target.value,
+                            })
+                          }
+                          style={{
+                            fontFamily: selectedField.fontFamily || "Arial",
+                          }}
+                          className="mt-2 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-white text-sm"
+                        >
+                          <option value="Arial">Arial</option>
+                          <option value="Helvetica">Helvetica</option>
+                          <option value="Times New Roman">
+                            Times New Roman
+                          </option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Color */}
+                    <div>
+                      <Label className="text-sm font-semibold text-gray-900 dark:text-white">
+                        Text Color
+                      </Label>
+                      <div className="mt-2 flex items-center space-x-3">
+                        <input
+                          type="color"
+                          value={selectedField.color || "#000000"}
+                          onChange={(e) =>
+                            onUpdateField(selectedField.id, {
+                              color: e.target.value,
+                            })
+                          }
+                          className="w-12 h-10 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 cursor-pointer"
+                        />
+                        <div className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm font-mono">
+                          {selectedField.color || "#000000"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Disabled font properties notice for QR and Signature fields */}
+                {(selectedField.type === "qr" ||
+                  selectedField.type === "signature") && (
+                  <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                    <div className="flex items-start space-x-2">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full mt-1.5 flex-shrink-0"></div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="font-medium text-gray-900 dark:text-white mb-1">
+                          Font Properties Not Available
+                        </p>
+                        <p>
+                          {selectedField.type === "qr"
+                            ? "QR codes are automatically generated and don't support font customization."
+                            : "Signature fields display uploaded images and don't support font customization."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Signature Selection */}
                 {selectedField.type === "signature" && (

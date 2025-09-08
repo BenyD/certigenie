@@ -17,257 +17,24 @@ import { Badge } from "@/components/ui/badge";
 import {
   FileText,
   ArrowLeft,
-  ArrowRight,
   Upload,
   Plus,
   Trash2,
-  Eye,
   Download,
   AlertCircle,
+  Users,
+  Database,
+  FileSpreadsheet,
+  CheckCircle,
+  Edit3,
+  Save,
+  X,
+  BarChart3,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { useDropzone } from "react-dropzone";
 import { z } from "zod";
-import {
-  Stage,
-  Layer,
-  Image as KonvaImage,
-  Text,
-  Rect,
-  Group,
-} from "react-konva";
-// Live Preview Component using Konva (same as design page)
-const LiveCertificatePreview = ({
-  template,
-  currentRecipient,
-}: {
-  template: {
-    file: {
-      name: string;
-      size: number;
-      type: string;
-      lastModified: number;
-      data: string;
-    };
-    fields: TemplateField[];
-    createdAt: number;
-  } | null;
-  currentRecipient: RecipientData;
-}) => {
-  const [templateImage, setTemplateImage] = useState<HTMLImageElement | null>(
-    null
-  );
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!template?.file) {
-      setError("No template available");
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    const img = new window.Image();
-    img.onload = () => {
-      setTemplateImage(img);
-      setIsLoading(false);
-    };
-    img.onerror = () => {
-      setError("Failed to load template image");
-      setIsLoading(false);
-    };
-    img.src = template.file.data;
-  }, [template]);
-
-  if (!template) {
-    return (
-      <div className="flex items-center justify-center h-64 bg-gray-50 dark:bg-gray-800 rounded-lg">
-        <p className="text-gray-500 dark:text-gray-400">No template loaded</p>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64 bg-gray-50 dark:bg-gray-800 rounded-lg">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Loading preview...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-64 bg-red-50 dark:bg-red-900/20 rounded-lg">
-        <div className="text-center">
-          <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
-            <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
-          </div>
-          <p className="text-sm text-red-600 dark:text-red-400 mb-2">
-            Preview Error
-          </p>
-          <p className="text-xs text-red-500 dark:text-red-500">{error}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!templateImage) {
-    return (
-      <div className="flex items-center justify-center h-64 bg-gray-50 dark:bg-gray-800 rounded-lg">
-        <p className="text-gray-500 dark:text-gray-400">Loading template...</p>
-      </div>
-    );
-  }
-
-  // Calculate scaling to fit the container (same logic as design page)
-  const containerWidth = 800; // Fixed width for preview
-  const containerHeight = 600; // Fixed height for preview
-  const scaleX = containerWidth / templateImage.width;
-  const scaleY = containerHeight / templateImage.height;
-  const scale = Math.min(scaleX, scaleY, 1); // Don't scale up
-
-  const stageWidth = templateImage.width * scale;
-  const stageHeight = templateImage.height * scale;
-
-  return (
-    <div className="h-full flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-      <div className="relative">
-        <Stage
-          width={stageWidth}
-          height={stageHeight}
-          scaleX={scale}
-          scaleY={scale}
-        >
-          <Layer>
-            {/* Template background */}
-            <KonvaImage
-              image={templateImage}
-              width={templateImage.width}
-              height={templateImage.height}
-              listening={false}
-            />
-
-            {/* Render fields with actual recipient data */}
-            {template.fields.map((field) => {
-              const fieldKey = `${field.id}-${field.fontSize}-${field.fontFamily}-${field.color}-${field.placeholder}`;
-              const displayX = field.x;
-              const displayY = field.y;
-              const displayWidth = field.width;
-              const displayHeight = field.height;
-
-              // Get actual value from recipient data
-              const fieldValue =
-                currentRecipient[field.id] || field.placeholder || "";
-
-              switch (field.type) {
-                case "text":
-                case "date":
-                  return (
-                    <Group key={fieldKey} id={field.id}>
-                      <Text
-                        x={displayX}
-                        y={displayY}
-                        width={displayWidth}
-                        height={displayHeight}
-                        text={fieldValue}
-                        fontSize={field.fontSize || 12}
-                        fontFamily={field.fontFamily || "Arial"}
-                        fill={field.color || "#1f2937"}
-                        align={field.textAlign || "left"}
-                        verticalAlign="top"
-                        wrap="word"
-                        listening={false}
-                        fontStyle={`${field.bold ? "bold" : ""} ${
-                          field.italic ? "italic" : ""
-                        }`.trim()}
-                      />
-                    </Group>
-                  );
-                case "signature":
-                  return (
-                    <Group key={fieldKey} id={field.id}>
-                      <Rect
-                        x={displayX}
-                        y={displayY}
-                        width={displayWidth}
-                        height={displayHeight}
-                        fill="transparent"
-                        stroke="#d1d5db"
-                        strokeWidth={1}
-                        dash={[5, 5]}
-                        listening={false}
-                      />
-                      <Text
-                        x={displayX + 5}
-                        y={displayY + 5}
-                        text={fieldValue || "Signature"}
-                        fontSize={12}
-                        fill="#6b7280"
-                        listening={false}
-                      />
-                    </Group>
-                  );
-                case "qr":
-                  return (
-                    <Group key={fieldKey} id={field.id}>
-                      <Rect
-                        x={displayX}
-                        y={displayY}
-                        width={displayWidth}
-                        height={displayHeight}
-                        fill="transparent"
-                        stroke="#d1d5db"
-                        strokeWidth={1}
-                        dash={[5, 5]}
-                        listening={false}
-                      />
-                      <Text
-                        x={displayX + 5}
-                        y={displayY + 5}
-                        text="QR Code"
-                        fontSize={12}
-                        fill="#6b7280"
-                        listening={false}
-                      />
-                    </Group>
-                  );
-                case "certificateId":
-                  return (
-                    <Group key={fieldKey} id={field.id}>
-                      <Text
-                        x={displayX}
-                        y={displayY}
-                        width={displayWidth}
-                        height={displayHeight}
-                        text={fieldValue || "CERT-123456"}
-                        fontSize={field.fontSize || 12}
-                        fontFamily={field.fontFamily || "Arial"}
-                        fill={field.color || "#1f2937"}
-                        align={field.textAlign || "left"}
-                        verticalAlign="top"
-                        wrap="word"
-                        listening={false}
-                      />
-                    </Group>
-                  );
-                default:
-                  return null;
-              }
-            })}
-          </Layer>
-        </Stage>
-      </div>
-    </div>
-  );
-};
 
 interface TemplateField {
   id: string;
@@ -343,10 +110,11 @@ export default function DataPage() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [csvData, setCsvData] = useState<Record<string, string>[]>([]);
-  const [csvMapping, setCsvMapping] = useState<Record<string, string>>({});
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
+  const [editingRecipient, setEditingRecipient] = useState<string | null>(null);
+  const [editingData, setEditingData] = useState<RecipientData>({ id: "" });
   const router = useRouter();
 
   const getFieldInputType = (field: TemplateField) => {
@@ -398,125 +166,38 @@ export default function DataPage() {
       return;
     }
 
-    // Generate CSV headers based on template fields (only text and date)
     const headers = template.fields
       .filter((field) => field.type === "text" || field.type === "date")
       .map((field) => getFieldDisplayName(field));
 
-    // Generate sample data (3 rows)
-    const sampleData = [
-      headers.map((header) => `Sample ${header} 1`),
-      headers.map((header) => `Sample ${header} 2`),
-      headers.map((header) => `Sample ${header} 3`),
-    ];
-
-    // Create CSV content
     const csvContent = [
       headers.join(","),
-      ...sampleData.map((row) => row.join(",")),
+      headers.map(() => "Sample Data").join(","),
     ].join("\n");
 
-    // Create and download file
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", "sample_certificate_data.csv");
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "sample_recipients.csv";
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
-  useEffect(() => {
-    // Load template from sessionStorage
-    const templateData = sessionStorage.getItem("template");
-    if (templateData) {
-      const parsedTemplate = JSON.parse(templateData);
-      setTemplate(parsedTemplate);
-
-      // Initialize current recipient with default values for each field
-      const initialRecipient: RecipientData = { id: "" };
-      parsedTemplate.fields.forEach((field: TemplateField) => {
-        if (field.type === "date") {
-          initialRecipient[field.id] = new Date().toISOString().split("T")[0];
-        } else {
-          initialRecipient[field.id] = "";
-        }
-      });
-      setCurrentRecipient(initialRecipient);
-
-      setIsLoading(false);
-    } else {
-      router.push("/upload");
-    }
-  }, [router]);
-
-  const handleSingleRecipientChange = (field: string, value: string) => {
-    setCurrentRecipient((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const addSingleRecipient = () => {
-    // Clear previous validation errors
-    clearValidationErrors();
-
-    // Validate the current recipient
-    const validation = validateRecipient(currentRecipient);
-
-    if (!validation.isValid) {
-      setValidationErrors(validation.errors);
-      return;
-    }
-
-    // Check if at least one field has a value
-    const hasValue = Object.entries(currentRecipient).some(
-      ([key, value]) => key !== "id" && value && value.trim()
-    );
-
-    if (hasValue) {
-      const newRecipient = {
-        ...currentRecipient,
-        id: `recipient_${Date.now()}`,
-      };
-      setRecipients((prev) => [...prev, newRecipient]);
-
-      // Reset current recipient with default values
-      const resetRecipient: RecipientData = { id: "" };
-      template?.fields.forEach((field: TemplateField) => {
-        if (field.type === "date") {
-          resetRecipient[field.id] = new Date().toISOString().split("T")[0];
-        } else {
-          resetRecipient[field.id] = "";
-        }
-      });
-      setCurrentRecipient(resetRecipient);
-    }
-  };
-
-  const removeRecipient = (id: string) => {
-    setRecipients((prev) => prev.filter((r) => r.id !== id));
-  };
-
-  const onCsvDrop = (acceptedFiles: File[]) => {
+  const onDrop = (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = (e) => {
       const csvText = e.target?.result as string;
-      // Simple CSV parsing (in production, use PapaParse)
       const lines = csvText.split("\n");
-      const headers = lines[0]
-        .split(",")
-        .map((h) => h.trim().replace(/"/g, ""));
+      const headers = lines[0].split(",").map((h) => h.trim());
       const data = lines
         .slice(1)
         .filter((line) => line.trim())
         .map((line) => {
-          const values = line.split(",").map((v) => v.trim().replace(/"/g, ""));
+          const values = line.split(",").map((v) => v.trim());
           const row: Record<string, string> = {};
           headers.forEach((header, index) => {
             row[header] = values[index] || "";
@@ -525,443 +206,596 @@ export default function DataPage() {
         });
 
       setCsvData(data);
-
-      // Auto-map common fields based on template fields
-      const autoMapping: Record<string, string> = {};
-      if (template) {
-        headers.forEach((header) => {
-          const lowerHeader = header.toLowerCase();
-          // Try to match with template field placeholders or types
-          template.fields.forEach((field) => {
-            const fieldLabel = field.placeholder?.toLowerCase() || field.type;
-            if (
-              lowerHeader.includes(fieldLabel) ||
-              (field.type === "text" &&
-                (lowerHeader.includes("name") ||
-                  lowerHeader.includes("recipient"))) ||
-              (field.type === "date" && lowerHeader.includes("date")) ||
-              (field.type === "signature" && lowerHeader.includes("signature"))
-            ) {
-              autoMapping[header] = field.id;
-            }
-          });
-        });
-      }
-      setCsvMapping(autoMapping);
     };
     reader.readAsText(file);
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop: onCsvDrop,
+    onDrop,
     accept: {
       "text/csv": [".csv"],
     },
-    multiple: false,
   });
 
-  const applyCsvMapping = () => {
-    const mappedRecipients = csvData.map((row, index) => {
-      const recipient: RecipientData = {
-        id: `csv_recipient_${index}`,
-      };
+  const addRecipient = () => {
+    if (!template) return;
 
-      // Initialize with default values for all template fields
-      if (template) {
-        template.fields.forEach((field) => {
-          if (field.type === "date") {
-            recipient[field.id] = new Date().toISOString().split("T")[0];
-          } else {
-            recipient[field.id] = "";
-          }
-        });
+    const newRecipient: RecipientData = {
+      id: `recipient-${Date.now()}`,
+    };
+
+    // Pre-fill with current form data
+    template.fields.forEach((field) => {
+      if (field.type === "text" || field.type === "date") {
+        newRecipient[field.id] = currentRecipient[field.id] || "";
       }
-
-      // Map CSV data to fields
-      Object.entries(csvMapping).forEach(([csvColumn, fieldId]) => {
-        if (row[csvColumn]) {
-          recipient[fieldId] = row[csvColumn];
-        }
-      });
-
-      return recipient;
     });
 
-    setRecipients((prev) => [...prev, ...mappedRecipients]);
-    setCsvData([]);
-    setCsvMapping({});
+    setRecipients([...recipients, newRecipient]);
+    setCurrentRecipient({ id: "" });
+    clearValidationErrors();
   };
 
-  const handleContinue = () => {
-    if (recipients.length === 0) {
-      alert("Please add at least one recipient before continuing.");
+  const deleteRecipient = (id: string) => {
+    setRecipients((prev) => prev.filter((recipient) => recipient.id !== id));
+  };
+
+  const startEditing = (recipient: RecipientData) => {
+    setEditingRecipient(recipient.id);
+    setEditingData({ ...recipient });
+  };
+
+  const saveEditing = () => {
+    if (!editingRecipient) return;
+
+    const validation = validateRecipient(editingData);
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors);
       return;
     }
 
-    // Store recipients data
+    setRecipients((prev) =>
+      prev.map((recipient) =>
+        recipient.id === editingRecipient ? editingData : recipient
+      )
+    );
+    setEditingRecipient(null);
+    setEditingData({ id: "" });
+    clearValidationErrors();
+  };
+
+  const cancelEditing = () => {
+    setEditingRecipient(null);
+    setEditingData({ id: "" });
+    clearValidationErrors();
+  };
+
+  const importFromCSV = () => {
+    if (csvData.length === 0) return;
+
+    const newRecipients: RecipientData[] = csvData.map((row, index) => ({
+      id: `recipient-${Date.now()}-${index}`,
+      ...row,
+    }));
+
+    setRecipients([...recipients, ...newRecipients]);
+    setCsvData([]);
+  };
+
+  const saveData = () => {
     sessionStorage.setItem("recipients", JSON.stringify(recipients));
     router.push("/export");
   };
 
+  useEffect(() => {
+    const templateData = sessionStorage.getItem("template");
+    const recipientsData = sessionStorage.getItem("recipients");
+
+    if (templateData) {
+      setTemplate(JSON.parse(templateData));
+    }
+
+    if (recipientsData) {
+      setRecipients(JSON.parse(recipientsData));
+    }
+
+    setIsLoading(false);
+  }, []);
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">
-            Loading template...
-          </p>
+          <p className="text-gray-600 dark:text-gray-400">Loading data...</p>
         </div>
       </div>
     );
   }
 
+  if (!template) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
+        <Card className="max-w-md mx-auto">
+          <CardContent className="p-8 text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              No Template Found
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              Please go back to the design page to create a template first.
+            </p>
+            <Link href="/design">
+              <Button className="w-full">Go to Design Page</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const textFields = template.fields.filter(
+    (field) => field.type === "text" || field.type === "date"
+  );
+
   return (
-    <div className="h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex flex-col">
-      {/* Enhanced Toolbar */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-        <div className="px-4 lg:px-6 py-3">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      {/* Modern Header */}
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 shadow-lg">
+        <div className="px-6 py-4">
           <div className="flex items-center justify-between">
-            {/* Left side - Navigation */}
-            <div className="flex items-center space-x-2">
+            {/* Left side - Navigation & Title */}
+            <div className="flex items-center space-x-4">
               <Link href="/design">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Design
                 </Button>
               </Link>
-            </div>
-
-            {/* Center - Title */}
-            <div className="flex items-center space-x-2">
-              <FileText className="h-6 w-6 text-blue-600" />
-              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Recipient Data
-              </h1>
+              <div className="h-6 w-px bg-gray-300 dark:bg-gray-600" />
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
+                  <Database className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    Recipient Data
+                  </h1>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Manage certificate recipient information
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Right side - Actions */}
-            <div className="flex items-center space-x-2 lg:space-x-3">
+            <div className="flex items-center space-x-3">
               <Button
-                onClick={handleContinue}
+                onClick={saveData}
                 disabled={recipients.length === 0}
-                size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
               >
+                <Zap className="h-4 w-4 mr-2" />
                 Continue to Export
-                <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-hidden">
-        <div className="h-full max-w-7xl mx-auto px-4 py-6">
-          {/* Stats */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-4">
-              <Badge variant="outline" className="text-sm">
-                {recipients.length} recipient
-                {recipients.length !== 1 ? "s" : ""}
-              </Badge>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Enter recipient details for your certificates
-              </p>
-            </div>
+      {/* Main Content */}
+      <div className="px-6 py-8">
+        <div className="max-w-7xl mx-auto space-y-8">
+          {/* Statistics Dashboard */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-700">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                      Total Recipients
+                    </p>
+                    <p className="text-3xl font-bold text-blue-900 dark:text-blue-100">
+                      {recipients.length}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-blue-500 rounded-xl">
+                    <Users className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                      Data Fields
+                    </p>
+                    <p className="text-3xl font-bold text-green-900 dark:text-green-100">
+                      {textFields.length}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-green-500 rounded-xl">
+                    <FileText className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-700">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-purple-600 dark:text-purple-400">
+                      Template Fields
+                    </p>
+                    <p className="text-3xl font-bold text-purple-900 dark:text-purple-100">
+                      {template.fields.length}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-purple-500 rounded-xl">
+                    <BarChart3 className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-700">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-orange-600 dark:text-orange-400">
+                      Ready to Export
+                    </p>
+                    <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">
+                      {recipients.length > 0 ? "Yes" : "No"}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-orange-500 rounded-xl">
+                    <CheckCircle className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          <Tabs defaultValue="single" className="w-full h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="single">Single Entry</TabsTrigger>
-              <TabsTrigger value="csv">CSV Upload</TabsTrigger>
+          {/* Main Content Tabs */}
+          <Tabs defaultValue="manual" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:grid-cols-2">
+              <TabsTrigger
+                value="manual"
+                className="flex items-center space-x-2"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Manual Entry</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="import"
+                className="flex items-center space-x-2"
+              >
+                <Upload className="h-4 w-4" />
+                <span>CSV Import</span>
+              </TabsTrigger>
             </TabsList>
 
-            {/* Single Entry Tab */}
-            <TabsContent value="single" className="flex-1 overflow-y-auto">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
-                {/* Form Section */}
-                <Card className="h-full">
-                  <CardHeader>
-                    <CardTitle>Add Single Recipient</CardTitle>
-                    <CardDescription>
-                      Enter details for one certificate recipient
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4 flex-1">
-                    {template && template.fields.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {template.fields
-                          .filter(
-                            (field) =>
-                              field.type === "text" || field.type === "date"
-                          )
-                          .map((field) => (
-                            <div
-                              key={field.id}
-                              className={`space-y-2 ${
-                                field.type === "signature"
-                                  ? "md:col-span-2"
-                                  : ""
-                              }`}
-                            >
-                              <Label
-                                htmlFor={field.id}
-                                className="text-sm font-medium text-gray-700 dark:text-gray-300"
-                              >
-                                {getFieldDisplayName(field)}
-                                {field.type === "text" && " *"}
-                              </Label>
-                              <Input
-                                id={field.id}
-                                type={getFieldInputType(field)}
-                                value={currentRecipient[field.id] || ""}
-                                onChange={(e) => {
-                                  handleSingleRecipientChange(
-                                    field.id,
-                                    e.target.value
-                                  );
-                                  // Clear validation error when user starts typing
-                                  if (validationErrors[field.id]) {
-                                    setValidationErrors((prev) => {
-                                      const newErrors = { ...prev };
-                                      delete newErrors[field.id];
-                                      return newErrors;
-                                    });
-                                  }
-                                }}
-                                placeholder={
-                                  field.placeholder || `Enter ${field.type}`
-                                }
-                                className={`w-full ${
-                                  validationErrors[field.id]
-                                    ? "border-red-500 focus:border-red-500"
-                                    : ""
-                                }`}
-                              />
-                              {validationErrors[field.id] && (
-                                <p className="text-sm text-red-600 dark:text-red-400 mt-1">
-                                  {validationErrors[field.id]}
-                                </p>
-                              )}
-                            </div>
-                          ))}
+            {/* Manual Entry Tab */}
+            <TabsContent value="manual" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Edit3 className="h-5 w-5 text-blue-600" />
+                    <span>Add New Recipient</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Enter recipient information for certificate generation
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {textFields.map((field) => (
+                      <div key={field.id} className="space-y-2">
+                        <Label
+                          htmlFor={field.id}
+                          className="text-sm font-medium"
+                        >
+                          {getFieldDisplayName(field)}
+                          {field.type === "text" && (
+                            <span className="text-red-500 ml-1">*</span>
+                          )}
+                        </Label>
+                        <Input
+                          id={field.id}
+                          type={getFieldInputType(field)}
+                          value={currentRecipient[field.id] || ""}
+                          onChange={(e) =>
+                            setCurrentRecipient({
+                              ...currentRecipient,
+                              [field.id]: e.target.value,
+                            })
+                          }
+                          placeholder={
+                            field.placeholder ||
+                            `Enter ${getFieldDisplayName(field).toLowerCase()}`
+                          }
+                          className={
+                            validationErrors[field.id] ? "border-red-500" : ""
+                          }
+                        />
+                        {validationErrors[field.id] && (
+                          <p className="text-sm text-red-500">
+                            {validationErrors[field.id]}
+                          </p>
+                        )}
                       </div>
-                    ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <p>
-                          No fields designed yet. Please go back to the design
-                          page to add fields.
-                        </p>
-                      </div>
-                    )}
+                    ))}
+                  </div>
+
+                  <div className="flex justify-end">
                     <Button
-                      onClick={addSingleRecipient}
-                      disabled={
-                        !Object.entries(currentRecipient).some(
-                          ([key, value]) =>
-                            key !== "id" && value && value.trim()
-                        )
-                      }
+                      onClick={addRecipient}
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Add Recipient
                     </Button>
-                  </CardContent>
-                </Card>
-
-                {/* Live Preview Section */}
-                <Card className="h-full">
-                  <CardHeader>
-                    <CardTitle>Live Preview</CardTitle>
-                    <CardDescription>
-                      See how your certificate will look with the current data
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex-1">
-                    <LiveCertificatePreview
-                      template={template}
-                      currentRecipient={currentRecipient}
-                    />
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* CSV Upload Tab */}
-            <TabsContent value="csv" className="flex-1 overflow-y-auto">
-              <Card className="h-full">
-                <CardHeader>
-                  <CardTitle>Upload CSV File</CardTitle>
-                  <CardDescription>
-                    Upload a CSV file with multiple recipients
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <div className="space-y-4">
-                    <div
-                      {...getRootProps()}
-                      className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                        isDragActive
-                          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                          : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
-                      }`}
-                    >
-                      <input {...getInputProps()} />
-                      <div className="flex flex-col items-center space-y-4">
-                        <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                          <Upload className="h-8 w-8 text-gray-400" />
-                        </div>
-                        <div>
-                          <p className="text-lg font-medium text-gray-900 dark:text-white">
-                            {isDragActive
-                              ? "Drop the CSV here"
-                              : "Choose CSV file or drag it here"}
-                          </p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                            CSV files only, with headers
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-center">
-                      <Button
-                        onClick={downloadSampleCSV}
-                        variant="outline"
-                        className="flex items-center space-x-2"
-                      >
-                        <Download className="h-4 w-4" />
-                        <span>Download Sample CSV</span>
-                      </Button>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
 
-              {csvData.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Map CSV Columns</CardTitle>
-                    <CardDescription>
-                      Map your CSV columns to certificate fields
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {Object.keys(csvData[0] || {}).map((column) => (
-                        <div key={column}>
-                          <Label htmlFor={column}>{column}</Label>
-                          <select
-                            id={column}
-                            value={csvMapping[column] || ""}
-                            onChange={(e) =>
-                              setCsvMapping((prev) => ({
-                                ...prev,
-                                [column]: e.target.value,
-                              }))
-                            }
-                            className="w-full mt-1 px-3 py-2 border rounded-md"
-                          >
-                            <option value="">Select field</option>
-                            {template?.fields
-                              .filter(
-                                (field) =>
-                                  field.type === "text" || field.type === "date"
-                              )
-                              .map((field) => (
-                                <option key={field.id} value={field.id}>
-                                  {getFieldDisplayName(field)}
-                                </option>
+            {/* CSV Import Tab */}
+            <TabsContent value="import" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <FileSpreadsheet className="h-5 w-5 text-green-600" />
+                    <span>Import from CSV</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Upload a CSV file to import multiple recipients at once
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div
+                    {...getRootProps()}
+                    className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 ${
+                      isDragActive
+                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                        : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
+                    }`}
+                  >
+                    <input {...getInputProps()} />
+                    <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                      {isDragActive
+                        ? "Drop your CSV file here"
+                        : "Drag & drop a CSV file here"}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      or click to browse files
+                    </p>
+                  </div>
+
+                  {csvData.length > 0 && (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          CSV Data Preview ({csvData.length} rows)
+                        </h3>
+                        <Button
+                          onClick={importFromCSV}
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          Import All
+                        </Button>
+                      </div>
+                      <div className="border rounded-lg overflow-hidden">
+                        <div className="max-h-64 overflow-y-auto">
+                          <table className="w-full text-sm">
+                            <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0">
+                              <tr>
+                                {Object.keys(csvData[0] || {}).map((header) => (
+                                  <th
+                                    key={header}
+                                    className="px-4 py-2 text-left font-medium text-gray-900 dark:text-white"
+                                  >
+                                    {header}
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                              {csvData.slice(0, 5).map((row, index) => (
+                                <tr key={index}>
+                                  {Object.values(row).map(
+                                    (value, cellIndex) => (
+                                      <td
+                                        key={cellIndex}
+                                        className="px-4 py-2 text-gray-600 dark:text-gray-400"
+                                      >
+                                        {value}
+                                      </td>
+                                    )
+                                  )}
+                                </tr>
                               ))}
-                          </select>
+                            </tbody>
+                          </table>
                         </div>
-                      ))}
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {csvData.length} rows will be imported
-                      </p>
-                      <Button onClick={applyCsvMapping}>
-                        Import Recipients
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                  )}
+
+                  <div className="flex items-center justify-between">
+                    <Button
+                      onClick={downloadSampleCSV}
+                      variant="outline"
+                      className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Sample CSV
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
 
           {/* Recipients List */}
           {recipients.length > 0 && (
-            <Card className="mt-8">
+            <Card>
               <CardHeader>
-                <CardTitle>Recipients ({recipients.length})</CardTitle>
-                <CardDescription>
-                  Review and manage your certificate recipients
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Users className="h-5 w-5 text-purple-600" />
+                      <span>Recipients ({recipients.length})</span>
+                    </CardTitle>
+                    <CardDescription>
+                      Manage your recipient data
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  {recipients.map((recipient) => (
+                <div className="space-y-4">
+                  {recipients.map((recipient, index) => (
                     <div
                       key={recipient.id}
-                      className="flex items-center justify-between p-4 border rounded-lg"
+                      className="p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:shadow-md transition-all duration-200"
                     >
-                      <div className="flex-1">
-                        <div className="font-medium">
-                          {template?.fields.find((f) => f.type === "text")
-                            ? recipient[
-                                template.fields.find((f) => f.type === "text")!
-                                  .id
-                              ] || "Unnamed"
-                            : "Recipient"}
+                      {editingRecipient === recipient.id ? (
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {textFields.map((field) => (
+                              <div key={field.id} className="space-y-2">
+                                <Label
+                                  htmlFor={`edit-${field.id}`}
+                                  className="text-sm font-medium"
+                                >
+                                  {getFieldDisplayName(field)}
+                                </Label>
+                                <Input
+                                  id={`edit-${field.id}`}
+                                  type={getFieldInputType(field)}
+                                  value={editingData[field.id] || ""}
+                                  onChange={(e) =>
+                                    setEditingData({
+                                      ...editingData,
+                                      [field.id]: e.target.value,
+                                    })
+                                  }
+                                  className={
+                                    validationErrors[field.id]
+                                      ? "border-red-500"
+                                      : ""
+                                  }
+                                />
+                                {validationErrors[field.id] && (
+                                  <p className="text-sm text-red-500">
+                                    {validationErrors[field.id]}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex justify-end space-x-2">
+                            <Button
+                              onClick={saveEditing}
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                            >
+                              <Save className="h-4 w-4 mr-1" />
+                              Save
+                            </Button>
+                            <Button
+                              onClick={cancelEditing}
+                              size="sm"
+                              variant="outline"
+                            >
+                              <X className="h-4 w-4 mr-1" />
+                              Cancel
+                            </Button>
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {template?.fields
-                            .filter(
-                              (field) =>
-                                field.type === "text" || field.type === "date"
-                            )
-                            .map((field) => (
-                              <span key={field.id}>
-                                {getFieldDisplayName(field)}:{" "}
-                                {recipient[field.id] || "Not provided"}
-                              </span>
-                            ))
-                            .reduce(
-                              (prev, curr, index) => [
-                                ...prev,
-                                index > 0 ? " | " : "",
-                                curr,
-                              ],
-                              [] as (string | React.JSX.Element)[]
-                            )}
+                      ) : (
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <Badge variant="outline" className="text-xs">
+                                #{index + 1}
+                              </Badge>
+                              <h3 className="font-medium text-gray-900 dark:text-white">
+                                Recipient {index + 1}
+                              </h3>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                              {textFields.map((field) => (
+                                <div key={field.id}>
+                                  <span className="text-gray-500 dark:text-gray-400">
+                                    {getFieldDisplayName(field)}:
+                                  </span>
+                                  <p className="font-medium text-gray-900 dark:text-white">
+                                    {recipient[field.id] || "—"}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              onClick={() => startEditing(recipient)}
+                              size="sm"
+                              variant="outline"
+                              className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                            >
+                              <Edit3 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              onClick={() => deleteRecipient(recipient.id)}
+                              size="sm"
+                              variant="outline"
+                              className="hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeRecipient(recipient.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      )}
                     </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
           )}
+
+          {/* Footer Actions */}
+          <div className="flex justify-between items-center pt-6">
+            <Link href="/design">
+              <Button
+                variant="outline"
+                className="hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Design
+              </Button>
+            </Link>
+            <Button
+              onClick={saveData}
+              disabled={recipients.length === 0}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              <Zap className="h-4 w-4 mr-2" />
+              Continue to Export ({recipients.length} recipients)
+            </Button>
+          </div>
         </div>
       </div>
     </div>

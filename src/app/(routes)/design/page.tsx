@@ -407,7 +407,7 @@ export default function DesignPage() {
             {isDragging && (
               <div className="absolute inset-0 flex items-center justify-center bg-blue-50/90 dark:bg-blue-900/30 rounded-xl pointer-events-none backdrop-blur-sm">
                 <div className="text-center">
-                  <div className="w-20 h-20 bg-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+                  <div className="w-20 h-20 bg-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg animate-pulse">
                     <span className="text-white text-3xl font-bold">+</span>
                   </div>
                   <p className="text-lg font-semibold text-blue-600 dark:text-blue-400">
@@ -416,6 +416,11 @@ export default function DesignPage() {
                   <p className="text-sm text-blue-500 dark:text-blue-300 mt-1">
                     Position it anywhere on the certificate
                   </p>
+                  <div className="mt-4 p-3 bg-white/80 dark:bg-gray-800/80 rounded-lg border border-blue-200 dark:border-blue-700">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      💡 Tip: You can drag and resize fields after placing them
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
